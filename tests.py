@@ -3,7 +3,7 @@ import datetime
 import re
 import unittest
 
-from bert import BERTDecoder, BERTEncoder
+from bert import BERTDecoder, BERTEncoder, Atom
 from bert.codec import utc_to_datetime, datetime_to_utc
 
 class TestDateConversion(unittest.TestCase):
@@ -41,7 +41,7 @@ class BERTTestCase(unittest.TestCase):
         # time
         (datetime.datetime.utcfromtimestamp(123*1000000+456).replace(microsecond=789), ('bert', 'time', 123, 456, 789)),
         # regex
-        # (re.compile('^c(a)t$', re.I|re.X), ('bert', 'regex', '^c(a)t$', ('caseless', 'extended'))),
+        (re.compile('^c(a)t$', re.I|re.X), ('bert', 'regex', '^c(a)t$', (Atom('extended'), Atom('caseless')))),
         # other
         ([1, 2.0, ("foo", "bar")], [1, 2.0, ("foo", "bar")]),
     ]
@@ -55,13 +55,6 @@ class BERTTestCase(unittest.TestCase):
         convert = BERTEncoder().convert
         for python, bert in self.bert_tests:
             self.failUnlessEqual(bert, convert(python))
-
-    def testRegex(self):
-        convert = BERTDecoder().convert
-        before = ('bert', 'regex', '^c(a)t$', ('caseless', 'extended'))
-        # after = re.compile('^c(a)t$', re.I|re.X)
-        # self.failUnlessEqual(after, self.convert(before))
-        self.failUnlessEqual(str(type(convert(before))), "<type '_sre.SRE_Pattern'>")
 
 if __name__ == '__main__':
     unittest.main()

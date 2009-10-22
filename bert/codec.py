@@ -13,6 +13,8 @@ def datetime_to_utc(dt):
     delta = dt - datetime.datetime(1970, 1, 1, 0, 0)
     return delta.days * 24 * 60 * 60 + delta.seconds, dt.microsecond
 
+RE_TYPE = type(re.compile("foo"))
+
 class BERTDecoder(ErlangTermDecoder):
     def decode(self, bytes, offset=0):
         obj = super(BERTDecoder, self).decode(bytes, offset)
@@ -44,7 +46,7 @@ class BERTDecoder(ErlangTermDecoder):
             flags = 0
             if 'extended' in item[3]:
                 flags |= re.VERBOSE
-            if 'ignorecase' in item[3]:
+            if 'caseless' in item[3]:
                 flags |= re.IGNORECASE
             if 'multiline' in item[3]:
                 flags |= re.MULTILINE
@@ -76,7 +78,17 @@ class BERTEncoder(ErlangTermEncoder):
             return [self.convert(item) for item in obj]
         elif isinstance(obj, tuple):
             return tuple(self.convert(item) for item in obj)
-        elif str(type(obj)) == "<type '_sre.SRE_Pattern'>":
+        elif type(obj) == RE_TYPE:
+            options = []
+            if obj.flags & re.VERBOSE:
+                options.append(Atom('extended'))
+            if obj.flags & re.IGNORECASE:
+                options.append(Atom('caseless'))
+            if obj.flags & re.MULTILINE:
+                options.append(Atom('multiline'))
+            if obj.flags & re.DOTALL:
+                options.append(Atom('dotall'))
+            return (Atom("bert"), Atom("regex"), obj.pattern, tuple(options))
             raise NotImplementedError("It is impossible to serialize a regex object")
         return obj
 
