@@ -9,7 +9,7 @@ def utc_to_datetime(seconds, microseconds):
     return datetime.datetime.utcfromtimestamp(seconds).replace(microsecond=microseconds)
 
 def datetime_to_utc(dt):
-    # Can't use time.mktime as it assume local timezone
+    # Can't use time.mktime as it assumes local timezone
     delta = dt - datetime.datetime(1970, 1, 1, 0, 0)
     return delta.days * 24 * 60 * 60 + delta.seconds, dt.microsecond
 
@@ -89,7 +89,6 @@ class BERTEncoder(ErlangTermEncoder):
             if obj.flags & re.DOTALL:
                 options.append(Atom('dotall'))
             return (Atom("bert"), Atom("regex"), obj.pattern, tuple(options))
-            raise NotImplementedError("It is impossible to serialize a regex object")
         return obj
 
 def datetime_to_split_time(dt):
