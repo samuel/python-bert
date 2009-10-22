@@ -1,27 +1,32 @@
 
 """Erlang External Term Format serializer/deserializer"""
 
+from __future__ import division
+
+import math
 import struct
 
-NEW_FLOAT_EXT = 70      # [Float64:IEEE float]
-SMALL_INTEGER_EXT = 97  # [UInt8:Int] Unsigned 8 bit integer
-INTEGER_EXT = 98        # [Int32:Int] Signed 32 bit integer in big-endian format
-FLOAT_EXT = 99          # [31:Float String] Float in string format (formatted "%.20e", sscanf "%lf"). Superseded by NEW_FLOAT_EXT
-ATOM_EXT = 100          # [UInt16:Len, Len:AtomName] max Len is 255
-SMALL_TUPLE_EXT = 104   # [UInt8:Arity, N:Elements]
-LARGE_TUPLE_EXT = 105   # [UInt32:Arity, N:Elements]
-NIL_EXT = 106           # empty list
-STRING_EXT = 107        # [UInt32:Len, Len:Characters]
-LIST_EXT = 108          # [UInt32:Len, Elements, Tail]
-BINARY_EXT = 109        # [UInt32:Len, Len:Data]
-SMALL_BIG_EXT = 110     # [UInt8:n, UInt8:Sign, n:nums]
-LARGE_BIG_EXT = 111     # [UInt32:n, UInt8:Sign, n:nums]
+NEW_FLOAT_EXT     = 'F' # 70  [Float64:IEEE float]
+SMALL_INTEGER_EXT = 'a' # 97  [UInt8:Int] Unsigned 8 bit integer
+INTEGER_EXT = 'b'       # 98  [Int32:Int] Signed 32 bit integer in big-endian format
+FLOAT_EXT = 'c'         # 99  [31:Float String] Float in string format (formatted "%.20e", sscanf "%lf"). Superseded by NEW_FLOAT_EXT
+ATOM_EXT = 'd'          # 100 [UInt16:Len, Len:AtomName] max Len is 255
+SMALL_TUPLE_EXT = 'h'   # 104 [UInt8:Arity, N:Elements]
+LARGE_TUPLE_EXT = 'i'   # 105 [UInt32:Arity, N:Elements]
+NIL_EXT = 'j'           # 106 empty list
+STRING_EXT = 'k'        # 107 [UInt32:Len, Len:Characters]
+LIST_EXT = 'l'          # 108 [UInt32:Len, Elements, Tail]
+BINARY_EXT = 'm'        # 109 [UInt32:Len, Len:Data]
+SMALL_BIG_EXT = 'n'     # 110 [UInt8:n, UInt8:Sign, n:nums]
+LARGE_BIG_EXT = 'o'     # 111 [UInt32:n, UInt8:Sign, n:nums]
 
 class Atom(str):
-    pass
+    def __repr__(self):
+        return "Atom(%s)" % super(Atom, self).__repr__()
 
 class Binary(str):
-    pass
+    def __repr__(self):
+        return "Binary(%s)" % super(Binary, self).__repr__()
 
 class ErlangTermDecoder(object):
     def __init__(self):
@@ -33,7 +38,7 @@ class ErlangTermDecoder(object):
         return self._decode(bytes, offset)[0]
 
     def _decode(self, bytes, offset=0):
-        tag = ord(bytes[offset])
+        tag = bytes[offset]
         offset += 1
         if tag == SMALL_INTEGER_EXT:
             return ord(bytes[offset]), offset+1
@@ -106,3 +111,64 @@ class ErlangTermDecoder(object):
         else:
             raise NotImplementedError("Unsupported tag %d" % tag)
 
+class ErlangTermEncoder(object):
+    def __init__(self):
+        pass
+
+    def encode(self, obj):
+        bytes = [chr(131)]
+        self._encode(obj, bytes)
+        return "".join(bytes)
+
+    def _encode(self, obj, bytes):
+        if obj is False:
+            bytes += [ATOM_EXT, struct.pack(">H", 5), "false"]
+        elif obj is True:
+            bytes += [ATOM_EXT, struct.pack(">H", 4), "true"]
+        elif isinstance(obj, (int, long)):
+            if 0 <= obj <= 255:
+                bytes += [SMALL_INTEGER_EXT, chr(obj)]
+            elif -2147483648 <= obj <= 2147483647:
+                bytes += [INTEGER_EXT, struct.pack(">l", obj)]
+            else:
+                n = int(math.ceil(math.log(obj, 2) / 8))
+                if n <= 256:
+                    bytes += [SMALL_BIG_EXT, chr(n)]
+                else:
+                    bytes += [LARGE_BIG_EXT, struct.pack(">L", n)]
+                if obj >= 0:
+                    bytes.append("\x00")
+                else:
+                    bytes.append("\x01")
+                    obj = -obj
+                while obj > 0:
+                    bytes.append(chr(obj & 0xff))
+                    obj >>= 8
+        elif isinstance(obj, float):
+            floatstr = "%.20e" % obj
+            bytes += [FLOAT_EXT, floatstr + "\x00"*(31-len(floatstr))]
+        elif isinstance(obj, Atom):
+            bytes += [ATOM_EXT, struct.pack(">H", len(obj)), obj]
+        elif isinstance(obj, (Binary, buffer)):
+            bytes += [BINARY_EXT, struct.pack(">L", len(obj)), obj]
+        elif isinstance(obj, str):
+            bytes += [STRING_EXT, struct.pack(">H", len(obj)), obj]
+        elif isinstance(obj, unicode):
+            self._encode([ord(x) for x in obj], bytes)
+        elif isinstance(obj, tuple):
+            n = len(obj)
+            if n < 256:
+                bytes += [SMALL_TUPLE_EXT, chr(n)]
+            else:
+                bytes += [LARGE_TUPLE_EXT, struct.pack(">L", n)]
+            for item in obj:
+                self._encode(item, bytes)
+        elif obj == []:
+            bytes.append(NIL_EXT)
+        elif isinstance(obj, list):
+            bytes += [LIST_EXT, struct.pack(">L", len(obj))]
+            for item in obj:
+                self._encode(item, bytes)
+            bytes.append(NIL_EXT) # list tail - no such thing in Python
+        else:
+            raise NotImplementedError("Unable to serialize %r" % obj)
