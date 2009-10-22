@@ -72,11 +72,12 @@ class BERTEncoder(ErlangTermEncoder):
             megaseconds = seconds // 1000000
             seconds = seconds % 1000000
             return (Atom("bert"), Atom("time"), megaseconds, seconds, microseconds)
-        # elif isinstance(obj, re):
         elif isinstance(obj, list):
             return [self.convert(item) for item in obj]
         elif isinstance(obj, tuple):
             return tuple(self.convert(item) for item in obj)
+        elif str(type(obj)).startswith('<_sre.SRE_Pattern object'):
+            raise NotImplementedError("It is impossible to serialize a regex object")
         return obj
 
 def datetime_to_split_time(dt):
