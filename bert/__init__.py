@@ -1,6 +1,6 @@
 
 from bert.erlang import ErlangTermDecoder, ErlangTermEncoder, Atom, Binary
-from bert.converters import BERTDecoder, BERTEncoder
+from bert.codec import BERTDecoder, BERTEncoder
 
 def erlang_encode(obj):
     return ErlangTermEncoder().encode(obj)

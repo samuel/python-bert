@@ -2,7 +2,7 @@
 import datetime
 import unittest
 
-from bert.converters import utc_to_datetime, datetime_to_utc
+from bert.codec import utc_to_datetime, datetime_to_utc
 
 class TestDateConversion(unittest.TestCase):
     test_dates = [
