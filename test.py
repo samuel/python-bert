@@ -1,9 +1,67 @@
-#!/usr/bin/env python
 
+import datetime
+import re
 import unittest
 
+from bert import BERTDecoder, BERTEncoder
+from bert.codec import utc_to_datetime, datetime_to_utc
+
+class TestDateConversion(unittest.TestCase):
+    test_dates = [
+        (datetime.datetime(1970, 1, 1, 0, 0, 0, 0), (0, 0)),
+        (datetime.datetime(2009, 1, 8, 4, 27, 47), (1231388867, 0)),
+        (datetime.datetime(2009, 10, 8, 4, 27, 47, 123), (1254976067, 123)),
+        (datetime.datetime(2009, 1, 8, 4, 27, 47, 456), (1231388867, 456)),
+    ]
+
+    def testToDatetime(self):
+        for dt, tstamp in self.test_dates:
+            self.failUnlessEqual(dt, utc_to_datetime(tstamp[0], tstamp[1]))
+
+    def testFromDatetime(self):
+        for dt, tstamp in self.test_dates:
+            self.failUnlessEqual(tstamp, datetime_to_utc(dt))
+
+class BERTTestCase(unittest.TestCase):
+    bert_tests = [
+        # nil
+        (None, ("bert", "nil")),
+        # nested nil
+        ([None, (None,)], [("bert", "nil"), (("bert", "nil"),)]),
+        # dict
+        ({'foo': 'bar'}, ('bert', 'dict', [('foo', 'bar')])),
+        # empty dict
+        ({}, ('bert', 'dict', [])),
+        # nested dict
+        ({'foo': {'baz': 'bar'}}, ('bert', 'dict', [('foo', ('bert', 'dict', [('baz', 'bar')]))])),
+        # true
+        (True, ('bert', 'true')),
+        # false
+        (False, ('bert', 'false')),
+        # time
+        (datetime.datetime.utcfromtimestamp(123*1000000+456).replace(microsecond=789), ('bert', 'time', 123, 456, 789)),
+        # regex
+        # (re.compile('^c(a)t$', re.I|re.X), ('bert', 'regex', '^c(a)t$', ('caseless', 'extended'))),
+        # other
+        ([1, 2.0, ("foo", "bar")], [1, 2.0, ("foo", "bar")]),
+    ]
+
+    def testDecode(self):
+        convert = BERTDecoder().convert
+        for python, bert in self.bert_tests:
+            self.failUnlessEqual(python, convert(bert))
+
+    def testEncode(self):
+        convert = BERTEncoder().convert
+        for python, bert in self.bert_tests:
+            self.failUnlessEqual(bert, convert(python))
+
+    def testRegex(self):
+        convert = BERTDecoder().convert
+        before = ('bert', 'regex', '^c(a)t$', ('caseless', 'extended'))
+        # after = re.compile('^c(a)t$', re.I|re.X)
+        # self.failUnlessEqual(after, self.convert(before))
+        self.failUnlessEqual(str(type(convert(before))), "<type '_sre.SRE_Pattern'>")
+
 if __name__ == '__main__':
-    from tests import *
-    from tests.erlangtests import *
-    from tests.berttests import *
     unittest.main()

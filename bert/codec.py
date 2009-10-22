@@ -3,7 +3,7 @@ import datetime
 import re
 import time
 
-from bert.erlang import ErlangTermDecoder, ErlangTermEncoder, Atom
+from erlastic import ErlangTermDecoder, ErlangTermEncoder, Atom
 
 def utc_to_datetime(seconds, microseconds):
     return datetime.datetime.utcfromtimestamp(seconds).replace(microsecond=microseconds)
@@ -76,7 +76,7 @@ class BERTEncoder(ErlangTermEncoder):
             return [self.convert(item) for item in obj]
         elif isinstance(obj, tuple):
             return tuple(self.convert(item) for item in obj)
-        elif str(type(obj)).startswith('<_sre.SRE_Pattern object'):
+        elif str(type(obj)) == "<type '_sre.SRE_Pattern'>":
             raise NotImplementedError("It is impossible to serialize a regex object")
         return obj
 
