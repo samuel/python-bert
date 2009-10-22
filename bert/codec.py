@@ -26,11 +26,11 @@ class BERTDecoder(object):
 
     def convert(self, item):
         if isinstance(item, tuple):
-            if item[0] == "bert":
+            if item and item[0] == "bert":
                 return self.convert_bert(item)
             return tuple(self.convert(i) for i in item)
         elif isinstance(item, list):
-            if item[0] == "bert":
+            if item and item[0] == "bert":
                 return self.convert_bert(item)
             return [self.convert(i) for i in item]
         return item

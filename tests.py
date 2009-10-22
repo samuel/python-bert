@@ -38,6 +38,8 @@ class BERTTestCase(unittest.TestCase):
         ({}, ('bert', 'dict', [])),
         # nested dict
         ({'foo': {'baz': 'bar'}}, ('bert', 'dict', [('foo', ('bert', 'dict', [('baz', 'bar')]))])),
+        # empty tuple
+        (tuple(), tuple()),
         # true
         (True, ('bert', 'true')),
         # false
