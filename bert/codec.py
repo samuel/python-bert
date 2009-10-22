@@ -15,9 +15,13 @@ def datetime_to_utc(dt):
 
 RE_TYPE = type(re.compile("foo"))
 
-class BERTDecoder(ErlangTermDecoder):
+class BERTDecoder(object):
+    def __init__(self, encoding="utf-8"):
+        self.encoding = encoding
+        self.erlang_decoder = ErlangTermDecoder()
+
     def decode(self, bytes, offset=0):
-        obj = super(BERTDecoder, self).decode(bytes, offset)
+        obj = self.erlang_decoder.decode(bytes, offset)
         return self.convert(obj)
 
     def convert(self, item):
@@ -34,6 +38,8 @@ class BERTDecoder(ErlangTermDecoder):
     def convert_bert(self, item):
         if item[1] == "nil":
             return None
+        elif item[1] == "unicode":
+            return item[2].decode(self.encoding)
         elif item[1] == "dict":
             return dict((self.convert(k), self.convert(v)) for k, v in item[2])
         elif item[1] in ("true", True):
@@ -55,10 +61,14 @@ class BERTDecoder(ErlangTermDecoder):
             return re.compile(item[2], flags)
         raise NotImplementedError("Unknown BERT type %s" % item[1])
 
-class BERTEncoder(ErlangTermEncoder):
+class BERTEncoder(object):
+    def __init__(self, encoding="utf-8"):
+        self.encoding = encoding
+        self.erlang_encoder = ErlangTermEncoder()
+
     def encode(self, obj):
         bert = self.convert(obj)
-        return super(BERTEncoder, self).encode(bert)
+        return self.erlang_encoder.encode(bert)
 
     def convert(self, obj):
         if obj is True:
@@ -67,6 +77,8 @@ class BERTEncoder(ErlangTermEncoder):
             return (Atom("bert"), Atom("false"))
         elif obj is None:
             return (Atom("bert"), Atom("nil"))
+        elif isinstance(obj, unicode):
+            return (Atom("bert"), Atom("unicode"), obj.encode(self.encoding))
         elif isinstance(obj, dict):
             return (Atom("bert"), Atom("dict"), [(self.convert(k), self.convert(v)) for k, v in obj.items()])
         elif isinstance(obj, datetime.datetime):
@@ -90,10 +102,3 @@ class BERTEncoder(ErlangTermEncoder):
                 options.append(Atom('dotall'))
             return (Atom("bert"), Atom("regex"), obj.pattern, tuple(options))
         return obj
-
-def datetime_to_split_time(dt):
-    seconds = int(time.mktime(dt.timetuple()))
-    megaseconds = seconds // 1000000
-    seconds = seconds % 1000000
-    microseconds = dt.microsecond
-    return megaseconds, seconds, microseconds

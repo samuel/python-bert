@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import datetime
 import re
@@ -28,6 +30,8 @@ class BERTTestCase(unittest.TestCase):
         (None, ("bert", "nil")),
         # nested nil
         ([None, (None,)], [("bert", "nil"), (("bert", "nil"),)]),
+        # unicode
+        (u"Mitä kuuluu", ('bert', 'unicode', u"Mitä kuuluu".encode('utf-8'))),
         # dict
         ({'foo': 'bar'}, ('bert', 'dict', [('foo', 'bar')])),
         # empty dict
