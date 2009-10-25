@@ -36,19 +36,20 @@ class BERTDecoder(object):
         return item
 
     def convert_bert(self, item):
-        if item[1] == "nil":
+        bert_type = item[1]
+        if bert_type == "nil":
             return None
-        elif item[1] == "unicode":
+        elif bert_type == "unicode":
             return item[2].decode(self.encoding)
-        elif item[1] == "dict":
+        elif bert_type == "dict":
             return dict((self.convert(k), self.convert(v)) for k, v in item[2])
-        elif item[1] in ("true", True):
+        elif bert_type in ("true", True):
             return True
-        elif item[1] in ("false", False):
+        elif bert_type in ("false", False):
             return False
-        elif item[1] == "time":
+        elif bert_type == "time":
             return utc_to_datetime(item[2] * 1000000 + item[3], item[4])
-        elif item[1] == "regex":
+        elif bert_type == "regex":
             flags = 0
             if 'extended' in item[3]:
                 flags |= re.VERBOSE
