@@ -13,6 +13,12 @@ def datetime_to_utc(dt):
     delta = dt - datetime.datetime(1970, 1, 1, 0, 0)
     return delta.days * 24 * 60 * 60 + delta.seconds, dt.microsecond
 
+def str_to_list(s):
+    return [ord(x) for x in s]
+
+def list_to_str(l):
+    return "".join(chr(x) for x in l)
+
 RE_TYPE = type(re.compile("foo"))
 
 class BERTDecoder(object):
@@ -39,8 +45,8 @@ class BERTDecoder(object):
         bert_type = item[1]
         if bert_type == "nil":
             return None
-        elif bert_type == "unicode":
-            return item[2].decode(self.encoding)
+        elif bert_type == "string":
+            return item[3].decode(list_to_str(item[2]))
         elif bert_type == "dict":
             return dict((self.convert(k), self.convert(v)) for k, v in item[2])
         elif bert_type in ("true", True):
@@ -79,7 +85,7 @@ class BERTEncoder(object):
         elif obj is None:
             return (Atom("bert"), Atom("nil"))
         elif isinstance(obj, unicode):
-            return (Atom("bert"), Atom("unicode"), obj.encode(self.encoding))
+            return (Atom("bert"), Atom("string"), str_to_list(self.encoding.upper()), obj.encode(self.encoding))
         elif isinstance(obj, dict):
             return (Atom("bert"), Atom("dict"), [(self.convert(k), self.convert(v)) for k, v in obj.items()])
         elif isinstance(obj, datetime.datetime):
