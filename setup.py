@@ -7,7 +7,7 @@ from bert import __version__ as version
 setup(
     name = 'bert',
     version = version,
-    description = 'BERT-RPC Library',
+    description = 'BERT Serialization Library',
     author = 'Samuel Stauffer',
     author_email = 'samuel@lefora.com',
     url = 'http://github.com/samuel/python-bert',
