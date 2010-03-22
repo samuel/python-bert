@@ -12,6 +12,7 @@ setup(
     author_email = 'samuel@lefora.com',
     url = 'http://github.com/samuel/python-bert',
     packages = ['bert'],
+    install_requires = ["erlastic"],
     classifiers = [
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
