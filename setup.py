@@ -2,11 +2,11 @@
 
 from distutils.core import setup
 
-from bert import __version__ as version
+__version__ = '1.0.0'
 
 setup(
     name = 'bert',
-    version = version,
+    version = __version__,
     description = 'BERT Serialization Library',
     author = 'Samuel Stauffer',
     author_email = 'samuel@lefora.com',
