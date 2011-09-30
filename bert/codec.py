@@ -46,7 +46,7 @@ class BERTDecoder(object):
         if bert_type == "nil":
             return None
         elif bert_type == "string":
-            return item[3].decode(list_to_str(item[2]))
+            return item[3].decode(Atom(item[2]))
         elif bert_type == "dict":
             return dict((self.convert(k), self.convert(v)) for k, v in item[2])
         elif bert_type in ("true", True):
@@ -85,7 +85,7 @@ class BERTEncoder(object):
         elif obj is None:
             return (Atom("bert"), Atom("nil"))
         elif isinstance(obj, unicode):
-            return (Atom("bert"), Atom("string"), str_to_list(self.encoding.upper()), obj.encode(self.encoding))
+            return (Atom("bert"), Atom("string"), Atom(self.encoding.upper()), obj.encode(self.encoding))
         elif isinstance(obj, dict):
             return (Atom("bert"), Atom("dict"), [(self.convert(k), self.convert(v)) for k, v in obj.items()])
         elif isinstance(obj, datetime.datetime):

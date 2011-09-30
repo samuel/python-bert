@@ -31,7 +31,7 @@ class BERTTestCase(unittest.TestCase):
         # nested nil
         ([None, (None,)], [("bert", "nil"), (("bert", "nil"),)]),
         # unicode
-        (u"Mitä kuuluu", ('bert', 'string', [ord(x) for x in 'UTF-8'], u"Mitä kuuluu".encode('utf-8'))),
+        (u"Mitä kuuluu", ('bert', 'string', Atom('UTF-8'), u"Mitä kuuluu".encode('utf-8'))),
         # dict
         ({'foo': 'bar'}, ('bert', 'dict', [('foo', 'bar')])),
         # empty dict

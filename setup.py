@@ -2,14 +2,14 @@
 
 from distutils.core import setup
 
-__version__ = '1.0.0'
+__version__ = '2.0.0'
 
 setup(
     name = 'bert',
     version = __version__,
     description = 'BERT Serialization Library',
     author = 'Samuel Stauffer',
-    author_email = 'samuel@lefora.com',
+    author_email = 'samuel@descolada.com',
     url = 'http://github.com/samuel/python-bert',
     packages = ['bert'],
     install_requires = ["erlastic"],
