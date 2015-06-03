@@ -5,6 +5,11 @@ import time
 
 from erlastic import ErlangTermDecoder, ErlangTermEncoder, Atom
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 def utc_to_datetime(seconds, microseconds):
     return datetime.datetime.utcfromtimestamp(seconds).replace(microsecond=microseconds)
