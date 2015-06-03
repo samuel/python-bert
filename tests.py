@@ -18,11 +18,11 @@ class TestDateConversion(unittest.TestCase):
 
     def testToDatetime(self):
         for dt, tstamp in self.test_dates:
-            self.failUnlessEqual(dt, utc_to_datetime(tstamp[0], tstamp[1]))
+            self.assertEqual(dt, utc_to_datetime(tstamp[0], tstamp[1]))
 
     def testFromDatetime(self):
         for dt, tstamp in self.test_dates:
-            self.failUnlessEqual(tstamp, datetime_to_utc(dt))
+            self.assertEqual(tstamp, datetime_to_utc(dt))
 
 class BERTTestCase(unittest.TestCase):
     bert_tests = [
@@ -55,12 +55,12 @@ class BERTTestCase(unittest.TestCase):
     def testDecode(self):
         convert = BERTDecoder().convert
         for python, bert in self.bert_tests:
-            self.failUnlessEqual(python, convert(bert))
+            self.assertEqual(python, convert(bert))
 
     def testEncode(self):
         convert = BERTEncoder().convert
         for python, bert in self.bert_tests:
-            self.failUnlessEqual(bert, convert(python))
+            self.assertEqual(bert, convert(python))
 
 if __name__ == '__main__':
     unittest.main()
