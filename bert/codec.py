@@ -5,23 +5,29 @@ import time
 
 from erlastic import ErlangTermDecoder, ErlangTermEncoder, Atom
 
+
 def utc_to_datetime(seconds, microseconds):
     return datetime.datetime.utcfromtimestamp(seconds).replace(microsecond=microseconds)
+
 
 def datetime_to_utc(dt):
     # Can't use time.mktime as it assumes local timezone
     delta = dt - datetime.datetime(1970, 1, 1, 0, 0)
     return delta.days * 24 * 60 * 60 + delta.seconds, dt.microsecond
 
+
 def str_to_list(s):
     return [ord(x) for x in s]
+
 
 def list_to_str(l):
     return "".join(chr(x) for x in l)
 
 RE_TYPE = type(re.compile("foo"))
 
+
 class BERTDecoder(object):
+
     def __init__(self, encoding="utf-8"):
         self.encoding = encoding
         self.erlang_decoder = ErlangTermDecoder()
@@ -68,7 +74,9 @@ class BERTDecoder(object):
             return re.compile(item[2], flags)
         raise NotImplementedError("Unknown BERT type %s" % item[1])
 
+
 class BERTEncoder(object):
+
     def __init__(self, encoding="utf-8"):
         self.encoding = encoding
         self.erlang_encoder = ErlangTermEncoder()
@@ -84,7 +92,7 @@ class BERTEncoder(object):
             return (Atom("bert"), Atom("false"))
         elif obj is None:
             return (Atom("bert"), Atom("nil"))
-        elif isinstance(obj, unicode):
+        elif isinstance(obj, basestring) and not self.__is_ascii(obj):
             return (Atom("bert"), Atom("string"), Atom(self.encoding.upper()), obj.encode(self.encoding))
         elif isinstance(obj, dict):
             return (Atom("bert"), Atom("dict"), [(self.convert(k), self.convert(v)) for k, v in obj.items()])
@@ -109,3 +117,6 @@ class BERTEncoder(object):
                 options.append(Atom('dotall'))
             return (Atom("bert"), Atom("regex"), obj.pattern, tuple(options))
         return obj
+
+    def __is_ascii(self, s):
+        return all(ord(c) < 128 for c in s)
