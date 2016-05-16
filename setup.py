@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-__version__ = '2.1.0'
+__version__ = '2.2.0'
 
 setup(
     name = 'bert',
@@ -10,7 +10,7 @@ setup(
     description = 'BERT Serialization Library',
     author = 'Samuel Stauffer',
     author_email = 'samuel@descolada.com',
-    url = 'http://github.com/samuel/python-bert',
+    url = 'https://github.com/samuel/python-bert',
     packages = ['bert'],
     install_requires = ["erlastic"],
     classifiers = [
